@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import Head from "next/head";
 
-const G = "#0F6E56";
-const GL = "#E1F5EE";
+const G = "#8B1A1A";
+const GL = "#FFF0F0";
 
 const KNOWN_CITIES = [
   { city: "New Delhi", state: "Delhi", multiplier: 1.0 },
@@ -255,17 +255,17 @@ function QuoteCard({ quote, contact }) {
     <div id="print-area">
       <div style={{ background: G, padding: "16px 20px", borderRadius: "10px 10px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <div style={{ color: "#9FE1CB", fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "3px" }}>
+          <div style={{ color: "#F5C0C0", fontSize: "11px", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "3px" }}>
             {quote.customRequired ? "Custom Quote Required" : "Care estimate · " + quote.cityInput + ", " + quote.stateInput}
           </div>
           <div style={{ color: "#fff", fontSize: "15px", fontWeight: 600 }}>{quote.service}</div>
-          <div style={{ color: "#9FE1CB", fontSize: "12px", marginTop: "2px" }}>{contact.name} · {contact.phone}</div>
+          <div style={{ color: "#F5C0C0", fontSize: "12px", marginTop: "2px" }}>{contact.name} · {contact.phone}</div>
         </div>
         {!quote.customRequired && (
           <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#9FE1CB", fontSize: "11px" }}>per month</div>
+            <div style={{ color: "#F5C0C0", fontSize: "11px" }}>per month</div>
             <div style={{ color: "#fff", fontSize: "26px", fontWeight: 700 }}>{fmt(quote.monthlyTotal)}</div>
-            <div style={{ color: "#9FE1CB", fontSize: "11px" }}>incl. GST</div>
+            <div style={{ color: "#F5C0C0", fontSize: "11px" }}>incl. GST</div>
           </div>
         )}
       </div>
@@ -421,14 +421,9 @@ export default function Home() {
       `}</style>
 
       <div ref={topRef} style={{ width: "100%", maxWidth: "540px" }}>
-        <div id="no-print" style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px", paddingTop: "8px" }}>
-          <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: G, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 1.6.82 3 2.05 3.82L4.5 14.5h7l-1.05-4.68C11.68 9 12.5 7.6 12.5 6c0-2.49-2.01-4.5-4.5-4.5z" fill="#9FE1CB" /></svg>
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: "15px", color: "#111827" }}>Omsorg Home Care</div>
-            <div style={{ fontSize: "11px", color: "#6b7280" }}>Get an instant care estimate</div>
-          </div>
+        <div id="no-print" style={{ marginBottom: "14px", paddingTop: "8px" }}>
+          <img src="https://omsorg.co.in/wp-content/uploads/2025/01/Untitled-design-48.png" alt="Omsorg" style={{ height: "48px", display: "block" }} onError={e => { e.target.style.display="none"; }} />
+          <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "4px" }}>Get an instant home care estimate</div>
         </div>
 
         <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", overflow: "hidden" }}>
