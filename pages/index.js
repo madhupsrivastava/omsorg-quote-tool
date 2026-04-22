@@ -473,7 +473,7 @@ export default function Home() {
                 {SERVICE_GROUPS.map(g => (
                   <div key={g.group} style={{ marginBottom: "14px" }}>
                     <div style={{ fontSize: "11px", fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>{g.group}</div>
-                    {g.items.map(s => <RadioCard key={s.name} label={s.name + " — " + fmt(s.rate) + " " + s.unit} desc={s.desc} checked={service === s.name} onChange={() => setService(s.name)} />)}
+                    {g.items.map(s => <RadioCard key={s.name} label={s.name} desc={s.desc} checked={service === s.name} onChange={() => setService(s.name)} />)}
                   </div>
                 ))}
                 <div style={{ marginBottom: "24px" }}>
