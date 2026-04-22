@@ -160,8 +160,8 @@ const CONDITIONS = [
 ];
 
 const TIMING = [
-  { label: "Day shift (standard hours)", multiplier: 1.0 },
-  { label: "Night shift", multiplier: 1.1 },
+  { label: "Standard (no extra charge)", multiplier: 1.0 },
+  { label: "Night shift only", multiplier: 1.1 },
   { label: "Weekend / holiday", multiplier: 1.1 },
   { label: "Urgent same-day start", multiplier: 1.15 },
   { label: "Remote / travel zone", multiplier: 1.1 },
@@ -272,10 +272,6 @@ function QuoteCard({ quote, contact }) {
       <div style={{ padding: "16px 20px", border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 10px 10px", background: "#fff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
           <tbody>
-            <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
-              <td style={{ padding: "8px 0", color: "#6b7280" }}>{quote.service}</td>
-              <td style={{ padding: "8px 0", textAlign: "right" }}>{fmt(quote.cityAdjBase)}<span style={{ color: "#6b7280", marginLeft: "2px" }}>/{perLabel}</span></td>
-            </tr>
             {quote.depItems.map((d, i) => (
               <tr key={i} style={{ borderBottom: "1px solid #f3f4f6" }}>
                 <td style={{ padding: "8px 0", color: "#6b7280" }}>{d.label}</td>
@@ -291,7 +287,7 @@ function QuoteCard({ quote, contact }) {
             {quote.timingMultiplier !== 1.0 && (
               <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
                 <td style={{ padding: "8px 0", color: "#6b7280" }}>{quote.timing}</td>
-                <td style={{ padding: "8px 0", textAlign: "right", color: G }}>×{quote.timingMultiplier}</td>
+                <td style={{ padding: "8px 0", textAlign: "right", color: G }}>+{fmt(quote.dailyPayable - quote.dailySub)}<span style={{ color: "#6b7280", marginLeft: "2px" }}>/day</span></td>
               </tr>
             )}
             <tr style={{ borderBottom: "1px solid #f3f4f6" }}>
@@ -336,7 +332,7 @@ export default function Home() {
   const [days, setDays] = useState(30);
   const [dependencies, setDependencies] = useState([]);
   const [conditions, setConditions] = useState([]);
-  const [timing, setTiming] = useState("Day shift (standard hours)");
+  const [timing, setTiming] = useState("Standard (no extra charge)");
   const [quote, setQuote] = useState(null);
   const [leadSent, setLeadSent] = useState(false);
   const [errors, setErrors] = useState({});
@@ -401,7 +397,7 @@ export default function Home() {
   const restart = () => {
     setStep(1); setContact({ name: "", phone: "", email: "" }); setStateInput(""); setCityInput("");
     setService(""); setDays(30); setDependencies([]); setConditions([]);
-    setTiming("Day shift (standard hours)"); setQuote(null); setLeadSent(false); setErrors({});
+    setTiming("Standard (no extra charge)"); setQuote(null); setLeadSent(false); setErrors({});
     scrollTop();
   };
 
@@ -513,8 +509,8 @@ export default function Home() {
                 <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "16px" }}>Does your loved one have any of the following? Select all that apply.</div>
                 {CONDITIONS.map(c => <CheckCard key={c.label} label={c.label} desc={c.desc} checked={conditions.includes(c.label)} onChange={() => toggleCond(c.label)} />)}
                 <div style={{ fontSize: "12px", color: "#9ca3af", margin: "4px 0 20px" }}>If none apply, just continue.</div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: "#374151", marginBottom: "10px" }}>When is care needed?</div>
-                {TIMING.map(t => <RadioCard key={t.label} label={t.label} checked={timing === t.label} onChange={() => setTiming(t.label)} />)}
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "#374151", marginBottom: "10px" }}>Any special circumstances? (select if applicable)</div>
+                {TIMING.map(t => <RadioCard key={t.label} label={t.label} desc={t.multiplier === 1.0 ? "Applies to all regular cases including 24-hour care" : t.multiplier === 1.15 ? "+15% — deployment within the same day" : "+10% premium applies"} checked={timing === t.label} onChange={() => setTiming(t.label)} />)}
                 <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
                   <Btn secondary onClick={goBack}>← Back</Btn>
                   <Btn onClick={goNext}>Show my quote →</Btn>
@@ -528,7 +524,7 @@ export default function Home() {
                 <div id="no-print" style={{ marginTop: "16px" }}>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "10px" }}>
                     <button onClick={() => window.print()} style={{ flex: 1, minWidth: "140px", padding: "10px 16px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", color: "#374151" }}>Print / Save PDF</button>
-                    <a href={"https://wa.me/911205244721?text=" + encodeURIComponent("Hi, I just got a care quote from Omsorg for " + quote.service + " in " + quote.cityInput + ", " + quote.stateInput + ". Can you help me?")} target="_blank" rel="noreferrer" style={{ flex: 1, minWidth: "140px", padding: "10px 16px", borderRadius: "8px", border: "none", background: "#25D366", fontSize: "13px", fontWeight: 600, cursor: "pointer", color: "#fff", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>WhatsApp us</a>
+                    <a href={"https://wa.me/918448381360?text=" + encodeURIComponent("Hi, I just got a care quote from Omsorg for " + quote.service + " in " + quote.cityInput + ", " + quote.stateInput + ". Can you help me?")} target="_blank" rel="noreferrer" style={{ flex: 1, minWidth: "140px", padding: "10px 16px", borderRadius: "8px", border: "none", background: "#25D366", fontSize: "13px", fontWeight: 600, cursor: "pointer", color: "#fff", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>WhatsApp us</a>
                   </div>
                   <button onClick={restart} style={{ fontSize: "12px", color: "#6b7280", background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>← Start a new quote</button>
                 </div>
@@ -538,7 +534,7 @@ export default function Home() {
           </div>
         </div>
         <div id="no-print" style={{ textAlign: "center", fontSize: "11px", color: "#9ca3af", marginTop: "12px" }}>
-          Omsorg Elder Care · omsorg.co.in · +91 120 524 4721
+          Omsorg Elder Care · omsorg.co.in · +91 84483 81360
         </div>
       </div>
     </>
