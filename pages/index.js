@@ -167,6 +167,128 @@ const TIMING = [
   { label: "Remote / travel zone", multiplier: 1.1 },
 ];
 
+const FREQ_OPTIONS = [
+  { label: "Once a week", perMonth: 4, desc: "4 sessions per month" },
+  { label: "Once a fortnight", perMonth: 2, desc: "2 sessions per month" },
+  { label: "Once a month", perMonth: 1, desc: "1 session per month" },
+  { label: "Once a quarter", perMonth: 0.33, desc: "Approx 1 session every 3 months" },
+];
+
+const ADDON_PLANS = [
+  {
+    id: "coordination", name: "Remote Coordination Plan", price: 2900, period: "year",
+    tag: "For families at a distance",
+    features: ["Round-the-clock emergency coordination helpline", "Emergency ambulance & BLS support (up to twice a year)", "On-call doctor access during medical emergencies (up to twice a year)", "Fortnightly welfare calls from your dedicated Omsorg coordinator", "Comprehensive annual health screening (81-parameter panel) + teleconsultation", "Referrals to our specialist network of doctors & physiotherapists", "Senior group experiences, wellness events & milestone celebrations", "Dedicated care navigation support during hospital stays"],
+    relevant: ["all"],
+  },
+  {
+    id: "health", name: "Health Management Plan", price: 1500, period: "month",
+    tag: "Proactive wellness oversight",
+    features: ["Weekly wellness check-in from your coordinator", "Quarterly doctor teleconsultation for personalised guidance", "Half-yearly doctor home visit", "Geriatric care strategy & fall risk evaluation", "Annual comprehensive health screening with doctor review", "Priority matching to vetted caregivers and nurses"],
+    relevant: ["all"],
+  },
+  {
+    id: "errands", name: "Errands Support Plan", price: 3200, period: "month",
+    tag: "Practical day-to-day help",
+    features: ["6 dedicated hours each month for in-home assistance", "Appointment travel, bill payments and daily errand support"],
+    relevant: ["all"],
+  },
+  {
+    id: "emotional", name: "Emotional Wellbeing Plan", price: 6700, period: "month",
+    tag: "Mental health & companionship",
+    features: ["Weekly companionship visits from a trained support companion", "Weekly wellness calls", "Monthly mental health assessment by a qualified doctor", "Ongoing professional support for emotional health", "Peer community groups for shared experiences and support"],
+    relevant: ["dementia", "palliative"],
+  },
+  {
+    id: "caregiver", name: "Caregiver Support Plan", price: 550, period: "month",
+    tag: "For the family carer",
+    features: ["Annual health check-up prioritising the caregiver's own wellbeing", "Quarterly doctor teleconsultation for personal medical advice", "Peer support groups connecting caregivers", "Access to geriatric caregiving education and practical resources"],
+    relevant: ["all"],
+  },
+  {
+    id: "diabetes", name: "Diabetes Management Plan", price: 2400, period: "month",
+    tag: "Structured diabetes care",
+    features: ["Daily wellbeing and medication monitoring calls", "Quarterly HbA1c blood testing with teleconsultation review", "Weekly dietician teleconsultations for nutritional guidance", "Diabetes peer support groups and online lifestyle sessions", "Medicine ordering reminders and delivery coordination"],
+    relevant: ["diabetes"],
+  },
+  {
+    id: "dementia", name: "Dementia Management Plan", price: 8100, period: "month",
+    tag: "Specialist dementia support",
+    features: ["Weekly monitoring calls managing appointments & wellbeing", "Monthly doctor teleconsultations", "Quarterly psychologist sessions & mental wellbeing evaluations", "Caregiver counselling on managing behavioural challenges", "One complimentary physiotherapy session", "6 hours monthly appointment accompaniment"],
+    relevant: ["dementia"],
+  },
+  {
+    id: "ckd", name: "Chronic Kidney Disease Plan", price: 7900, period: "month",
+    tag: "Kidney health management",
+    features: ["Weekly coordinator calls covering CKD education & dialysis logistics", "Monthly doctor & psychologist teleconsultations", "Annual full body screening with specialised renal tests", "One complimentary physiotherapy session", "6 hours monthly dialysis appointment accompaniment", "Medicine ordering reminders and delivery coordination"],
+    relevant: ["catheter", "oxygen"],
+  },
+  {
+    id: "stroke", name: "Stroke Recovery Plan", price: 9900, period: "month",
+    tag: "Post-stroke rehabilitation support",
+    features: ["Weekly coordinator calls for post-stroke education & management", "Monthly doctor & psychologist teleconsultations", "One complimentary physiotherapy session", "6 hours monthly appointment accompaniment", "Quarterly dietician session for recovery nutrition", "Regular home safety assessments"],
+    relevant: ["bedridden", "transfer"],
+  },
+  {
+    id: "arthritis", name: "Arthritis Management Plan", price: 4600, period: "month",
+    tag: "Joint health & mobility",
+    features: ["Weekly coordinator calls & monthly doctor teleconsultations", "One complimentary physiotherapy session", "Quarterly dietician session for joint-health nutrition", "Monthly pain management advisory support", "Regular home safety assessments"],
+    relevant: ["transfer"],
+  },
+  {
+    id: "heart", name: "Heart Disease Management Plan", price: 6300, period: "month",
+    tag: "Cardiac health monitoring",
+    features: ["Weekly coordinator calls & monthly doctor teleconsultations", "One complimentary physiotherapy session", "Quarterly heart-healthy dietician sessions", "Priority access to homecare nursing support", "Regular home safety assessments"],
+    relevant: ["oxygen"],
+  },
+  {
+    id: "cancer", name: "Cancer Management Plan", price: 14200, period: "month",
+    tag: "Comprehensive oncology support",
+    features: ["Weekly coordinator calls with medication & appointment management", "Monthly doctor, psychologist & dietician sessions", "One complimentary physiotherapy session", "6 hours monthly treatment appointment accompaniment", "Pharma patient assistance programme guidance", "Monthly pain management advisory support"],
+    relevant: ["palliative"],
+  },
+];
+
+function getRelevantPlans(quote) {
+  const allLabels = [...(quote.depItems || []), ...(quote.condItems || [])].map(x => x.label.toLowerCase());
+  const timing = (quote.timing || "").toLowerCase();
+  const scores = {};
+  ADDON_PLANS.forEach(p => { scores[p.id] = p.relevant.includes("all") ? 2 : 0; });
+  if (allLabels.some(l => l.includes("dementia"))) { scores["dementia"] = 10; scores["emotional"] = 6; }
+  if (allLabels.some(l => l.includes("palliative"))) { scores["cancer"] = 10; scores["emotional"] = 7; }
+  if (allLabels.some(l => l.includes("catheter") || l.includes("kidney"))) scores["ckd"] = 8;
+  if (allLabels.some(l => l.includes("oxygen") || l.includes("heart"))) { scores["heart"] = 7; scores["ckd"] = (scores["ckd"] || 0) + 3; }
+  if (allLabels.some(l => l.includes("bedridden") || l.includes("transfer"))) { scores["stroke"] = 7; scores["arthritis"] = 5; }
+  if (allLabels.some(l => l.includes("feeding"))) { scores["dementia"] = (scores["dementia"] || 0) + 4; scores["stroke"] = (scores["stroke"] || 0) + 3; }
+  if (timing.includes("remote")) scores["coordination"] = 12;
+  return Object.entries(scores).sort(([,a],[,b]) => b-a).map(([id]) => ADDON_PLANS.find(p => p.id === id)).filter(Boolean);
+}
+
+function PlanCard({ plan }) {
+  const waText = encodeURIComponent("Hi, I saw the " + plan.name + " on your quote tool. Can you tell me more?");
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", overflow: "hidden", marginBottom: "12px" }}>
+      <div style={{ background: G, padding: "12px 16px" }}>
+        <div style={{ color: "#F5C0C0", fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>{plan.tag}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ color: "#fff", fontSize: "15px", fontWeight: 600 }}>{plan.name}</div>
+          <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "12px" }}>
+            <div style={{ color: "#fff", fontSize: "18px", fontWeight: 700 }}>{fmt(plan.price)}</div>
+            <div style={{ color: "#F5C0C0", fontSize: "11px" }}>/{plan.period}</div>
+          </div>
+        </div>
+      </div>
+      <div style={{ padding: "12px 16px" }}>
+        <ul style={{ margin: 0, padding: "0 0 0 16px" }}>
+          {plan.features.slice(0, 4).map((f, i) => <li key={i} style={{ fontSize: "12px", color: "#374151", marginBottom: "4px", lineHeight: "1.5" }}>{f}</li>)}
+          {plan.features.length > 4 && <li style={{ fontSize: "12px", color: "#6b7280", listStyle: "none", marginLeft: "-16px" }}>+ {plan.features.length - 4} more benefits</li>}
+        </ul>
+        <a href={"https://wa.me/918448381360?text=" + waText} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: "12px", padding: "8px 14px", background: "#25D366", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 600, textAlign: "center", textDecoration: "none" }}>Enquire on WhatsApp</a>
+      </div>
+    </div>
+  );
+}
+
 const fmt = (n) => "\u20B9" + Math.round(n).toLocaleString("en-IN");
 
 function calculate({ cityInput, stateInput, service, dependencies, conditions, timing, days }) {
@@ -334,11 +456,17 @@ export default function Home() {
   const [conditions, setConditions] = useState([]);
   const [timing, setTiming] = useState("Standard (no extra charge)");
   const [quote, setQuote] = useState(null);
+  const [freq, setFreq] = useState(FREQ_OPTIONS[2]); // default: once a month
+  const [notes, setNotes] = useState("");
+  const [showAllPlans, setShowAllPlans] = useState(false);
   const [leadSent, setLeadSent] = useState(false);
   const [errors, setErrors] = useState({});
   const topRef = useRef(null);
 
   const scrollTop = () => setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+  const isFreqService = service === "Physiotherapy session" || service === "Dietician consult";
+  const effectiveDays = isFreqService ? freq.perMonth : days;
 
   const sendLead = async (fullQuote) => {
     if (leadSent) return;
@@ -348,10 +476,11 @@ export default function Home() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           name: contact.name, phone: contact.phone, email: contact.email,
-          state: stateInput, city: cityInput, service, days,
+          state: stateInput, city: cityInput, service,
+          frequency: isFreqService ? freq.label : days + " days/month",
           dependencies: dependencies.join(", ") || "None",
           conditions: conditions.join(", ") || "None",
-          timing,
+          timing, notes: notes || "None",
           monthly_total: fullQuote ? fmt(fullQuote.monthlyTotal) : "Not yet calculated",
           custom_quote: fullQuote?.customRequired ? "YES" : "No",
           location_note: fullQuote?.fallbackNote || "Exact city rate used",
@@ -387,7 +516,7 @@ export default function Home() {
     else if (step === 2) { if (!validate2()) return; setErrors({}); setStep(3); }
     else if (step === 3) { setStep(4); }
     else if (step === 4) {
-      const q = calculate({ cityInput, stateInput, service, dependencies, conditions, timing, days });
+      const q = calculate({ cityInput, stateInput, service, dependencies, conditions, timing, days: effectiveDays });
       setQuote(q); sendLead(q); setStep(5);
     }
     scrollTop();
@@ -397,7 +526,8 @@ export default function Home() {
   const restart = () => {
     setStep(1); setContact({ name: "", phone: "", email: "" }); setStateInput(""); setCityInput("");
     setService(""); setDays(30); setDependencies([]); setConditions([]);
-    setTiming("Standard (no extra charge)"); setQuote(null); setLeadSent(false); setErrors({});
+    setTiming("Standard (no extra charge)"); setQuote(null); setLeadSent(false);
+    setNotes(""); setFreq(FREQ_OPTIONS[2]); setShowAllPlans(false); setErrors({});
     scrollTop();
   };
 
@@ -461,6 +591,10 @@ export default function Home() {
                   <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "4px" }}>Enter any city or town — even smaller places are welcome</div>
                   <Err msg={errors.city} />
                 </div>
+                <div style={{ marginBottom: "24px" }}>
+                  <Lbl>Anything else? <span style={{ fontWeight: 400, color: "#9ca3af" }}>(optional — any language)</span></Lbl>
+                  <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Hindi, Hinglish, Tamil — koi bhi bhasha chalegi. Describe what you need..." rows={2} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", color: "#111827", background: "#fff", boxSizing: "border-box", fontFamily: "inherit", resize: "vertical" }} />
+                </div>
                 <Btn onClick={goNext}>Continue →</Btn>
               </div>
             )}
@@ -477,11 +611,20 @@ export default function Home() {
                   </div>
                 ))}
                 <div style={{ marginBottom: "24px" }}>
-                  <Lbl>{isVisit ? "Visits / sessions per month" : "Days of care per month"}</Lbl>
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "8px" }}>
-                    <input type="range" min={1} max={31} step={1} value={days} onChange={e => setDays(Number(e.target.value))} style={{ flex: 1, accentColor: G }} />
-                    <div style={{ fontSize: "22px", fontWeight: 700, color: G, minWidth: "36px", textAlign: "right" }}>{days}</div>
-                  </div>
+                  {isFreqService ? (
+                    <>
+                      <Lbl>How often do you need this?</Lbl>
+                      {FREQ_OPTIONS.map(f => <RadioCard key={f.label} label={f.label} desc={f.desc} checked={freq.label === f.label} onChange={() => setFreq(f)} />)}
+                    </>
+                  ) : (
+                    <>
+                      <Lbl>{isVisit ? "Visits per month" : "Days of care per month"}</Lbl>
+                      <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "8px" }}>
+                        <input type="range" min={1} max={31} step={1} value={days} onChange={e => setDays(Number(e.target.value))} style={{ flex: 1, accentColor: G }} />
+                        <div style={{ fontSize: "22px", fontWeight: 700, color: G, minWidth: "36px", textAlign: "right" }}>{days}</div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
                   <Btn secondary onClick={goBack}>← Back</Btn>
@@ -527,6 +670,17 @@ export default function Home() {
                     <a href={"https://wa.me/918448381360?text=" + encodeURIComponent("Hi, I just got a care quote from Omsorg for " + quote.service + " in " + quote.cityInput + ", " + quote.stateInput + ". Can you help me?")} target="_blank" rel="noreferrer" style={{ flex: 1, minWidth: "140px", padding: "10px 16px", borderRadius: "8px", border: "none", background: "#25D366", fontSize: "13px", fontWeight: 600, cursor: "pointer", color: "#fff", textAlign: "center", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>WhatsApp us</a>
                   </div>
                   <button onClick={restart} style={{ fontSize: "12px", color: "#6b7280", background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>← Start a new quote</button>
+                </div>
+
+                <div id="no-print" style={{ marginTop: "28px" }}>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#111827", marginBottom: "4px" }}>You may also be interested in</div>
+                  <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "16px" }}>Omsorg wellness and management plans — designed to complement your care package</div>
+                  {getRelevantPlans(quote).slice(0, showAllPlans ? 12 : 3).map(plan => <PlanCard key={plan.id} plan={plan} />)}
+                  {!showAllPlans && (
+                    <button onClick={() => setShowAllPlans(true)} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "#f9fafb", fontSize: "13px", fontWeight: 600, cursor: "pointer", color: "#374151", marginTop: "4px" }}>
+                      View all plans ({ADDON_PLANS.length} available) ↓
+                    </button>
+                  )}
                 </div>
               </div>
             )}
